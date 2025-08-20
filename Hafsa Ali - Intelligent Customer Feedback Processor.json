@@ -1,0 +1,500 @@
+{
+  "name": "The Intelligent Customer Feedback Processor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "89d28982-2bbd-43a1-94ad-8a02e67ea92a",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -368,
+        0
+      ],
+      "id": "eb4bda8c-c02a-43d3-8852-0ead65ad097c",
+      "name": "Receive Customer Feedback",
+      "webhookId": "89d28982-2bbd-43a1-94ad-8a02e67ea92a"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"openai/gpt-3.5-turbo\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a sentiment analysis assistant. Reply only with one word: Positive, Negative, or Neutral.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"={{$json['body']['feedback']}}\"\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -64,
+        0
+      ],
+      "id": "2adab604-ebdb-4931-b1d6-454cc3bbe4d3",
+      "name": "Analyze Sentiment with LLM"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json[\"choices\"][0][\"message\"][\"content\"]}}",
+                    "rightValue": "Negative",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e19998a9-2e4f-4c78-a351-33c4e5797854"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Negative"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "08b527cb-30ae-4640-964c-785a1f72a146",
+                    "leftValue": "={{$json[\"choices\"][0][\"message\"][\"content\"]}}",
+                    "rightValue": "Positive",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Positive"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6ef88aac-ee3f-4e8f-8f0b-c34237b4e2d3",
+                    "leftValue": "={{$json[\"choices\"][0][\"message\"][\"content\"]}}",
+                    "rightValue": "Neutral",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Neutral"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        304,
+        -16
+      ],
+      "id": "42ec6ea0-ee77-4ef9-adb6-a06fa5d8c965",
+      "name": "Route by Sentiment"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Kqr9RuNjUfEfw7WSAxIOmRAqYwr3w2IBhatXrfd6js0",
+          "mode": "list",
+          "cachedResultName": "Customer Feedback",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Kqr9RuNjUfEfw7WSAxIOmRAqYwr3w2IBhatXrfd6js0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Negative Feedback",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Kqr9RuNjUfEfw7WSAxIOmRAqYwr3w2IBhatXrfd6js0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{$node[\"Receive Customer Feedback\"].json[\"body\"][\"name\"]}}",
+            "Feedback": "={{$node[\"Receive Customer Feedback\"].json[\"body\"][\"feedback\"]}}",
+            "Sentiment": "={{$json[\"choices\"][0][\"message\"][\"content\"]}}",
+            "Email": "={{$node[\"Receive Customer Feedback\"].json[\"body\"][\"email\"]}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Feedback",
+              "displayName": "Feedback",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sentiment",
+              "displayName": "Sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        -224
+      ],
+      "id": "7eb36f6d-1d29-45ac-847b-920be214f85a",
+      "name": "Log Negative Feedback",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "OJFGA3qnony89BYK",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09AUE0LZ18",
+          "mode": "list",
+          "cachedResultName": "all-the-intelligent-customer-feedback-processor"
+        },
+        "text": "=🎉 Positive feedback received from {{$node[\"Receive Customer Feedback\"].json[\"body\"][\"name\"]}}: {{$node[\"Receive Customer Feedback\"].json[\"body\"][\"feedback\"]}}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        976,
+        0
+      ],
+      "id": "23cdc4f1-3d7b-4c2e-87c5-a7ae8fdbf415",
+      "name": "Celebrate Positive Feedback",
+      "webhookId": "ebad755b-3cdc-4c1d-b333-69cfc0f6ad8d",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "85sCPAxVsiBCodcM",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Kqr9RuNjUfEfw7WSAxIOmRAqYwr3w2IBhatXrfd6js0",
+          "mode": "list",
+          "cachedResultName": "Customer Feedback",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Kqr9RuNjUfEfw7WSAxIOmRAqYwr3w2IBhatXrfd6js0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1424552036,
+          "mode": "list",
+          "cachedResultName": "Neutral Feedback",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Kqr9RuNjUfEfw7WSAxIOmRAqYwr3w2IBhatXrfd6js0/edit#gid=1424552036"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{$node[\"Receive Customer Feedback\"].json[\"body\"][\"name\"]}}",
+            "Email": "={{$node[\"Receive Customer Feedback\"].json[\"body\"][\"email\"]}}",
+            "Sentiment": "={{$json[\"choices\"][0][\"message\"][\"content\"]}}",
+            "Feedback": "={{$node[\"Receive Customer Feedback\"].json[\"body\"][\"feedback\"]}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Feedback",
+              "displayName": "Feedback",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sentiment",
+              "displayName": "Sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        192
+      ],
+      "id": "f8c45651-8dfe-44f2-aff0-5d71abeaeee2",
+      "name": "Log Neutral Feedback",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "OJFGA3qnony89BYK",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## This node receives new feedback from customers via Webhook.",
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        176
+      ],
+      "id": "e8eee4eb-cc15-4f0b-b53e-bf7aca33978d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Sends the feedback text to OpenRouter.ai / OpenAI for sentiment analysis. Returns Positive, Negative, or Neutral.",
+        "height": 176,
+        "width": 352,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        -208
+      ],
+      "id": "d4ae0a07-2282-40f3-b18b-b2ed7617d389",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Switch node routes feedback: Negative → Google Sheet, Positive → Slack, Neutral → Google Sheet.",
+        "height": 176,
+        "width": 304,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        224,
+        208
+      ],
+      "id": "24e5dd5d-f118-4dfe-961b-c1a937877600",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Append negative feedback to Google Sheet to create a follow-up task.",
+        "width": 256,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        656,
+        -400
+      ],
+      "id": "46535195-616a-491a-92af-ea8f72dcd746",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Send a congratulatory message to team Slack channel when feedback is positive.",
+        "height": 144,
+        "width": 288,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        -16
+      ],
+      "id": "747677ab-87eb-479b-a50a-f964d37653cc",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Append neutral feedback to Google Sheet for later review.",
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        656,
+        384
+      ],
+      "id": "7530ebe9-6dc1-4f61-904f-2dc8e446821a",
+      "name": "Sticky Note5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Receive Customer Feedback": {
+      "main": [
+        [
+          {
+            "node": "Analyze Sentiment with LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Sentiment with LLM": {
+      "main": [
+        [
+          {
+            "node": "Route by Sentiment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Sentiment": {
+      "main": [
+        [
+          {
+            "node": "Log Negative Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Celebrate Positive Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Neutral Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Negative Feedback": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a449ad65-813f-406e-87ca-f5dbb16519ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b8704988c966c30783d757af15754fbe5db5db2dabe3dfb5558553272d77f9ec"
+  },
+  "id": "zqKgz9U5KaptH16D",
+  "tags": []
+}
