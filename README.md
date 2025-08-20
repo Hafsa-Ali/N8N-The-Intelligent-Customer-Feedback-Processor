@@ -12,7 +12,7 @@ Before you start, make sure you have:
 
 This workflow is triggered whenever a **new feedback** is submitted.  
 The input JSON contains feedback details such as the user's name, email, and their feedback message.  
-*💡 **Reminder:** 1- Paste this code in your Postman → Body → Raw*
+*💡 **Reminder:** 1- Paste this code in your Postman → Body → Raw*  
                 *2- You can change feedback to track positive, negative, & neutral feedbacks*
 ### Example
 ```json
