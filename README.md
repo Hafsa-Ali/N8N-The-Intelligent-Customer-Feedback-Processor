@@ -26,5 +26,27 @@ The input JSON contains feedback details such as the user's name, email, and the
 ```
 
 ## Workflow
-![image](https://github.com/user-attachments/assets/7e99c0e8-c416-49a7-9c03-0c19f40d45fb) 
+![image](https://github.com/user-attachments/assets/7e99c0e8-c416-49a7-9c03-0c19f40d45fb)  
+
+## 📊 Feedback Sentiment Analysis Workflow
+| Step | Node | Purpose |
+|------|------|---------|
+| 1 | **Webhook – New Feedback Submitted** | Trigger – receives feedback details (`name`, `email`, `feedback`). |
+| 2 | **HTTP Request – Sentiment Analysis (LLM)** | Sends the feedback text to a language model for sentiment detection. |
+| 3 | **Switch Node – Sentiment Routing** | Routes feedback based on sentiment: Positive, Negative, or Neutral. |
+| 4 | **Append Row (Negative branch)** | Logs negative feedback into a **Google Sheet** for follow-up action. |
+| 5 | **Send Slack Message (Positive branch)** | Posts a celebratory message to the team chat for positive feedback. |
+| 6 | **Append Row (Neutral branch)** | Logs neutral feedback into a **Google Sheet** for record-keeping. |
+
+## ✅ Branch Actions
+
+- **Negative branch** → Feedback logged for review/action  
+- **Positive branch** → Team notified and celebrated  
+- **Neutral branch** → Feedback stored for future reference  
+
+## 💡 Notes
+
+- Use a **Webhook or Form Trigger** to simulate feedback submissions.  
+- Ensure your **Google Sheet and Slack integrations** are properly connected.  
+- The LLM can be any sentiment analysis API or model of your choice.
 
