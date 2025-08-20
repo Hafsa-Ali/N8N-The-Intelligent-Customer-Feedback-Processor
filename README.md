@@ -25,3 +25,6 @@ The input JSON contains feedback details such as the user's name, email, and the
 }
 ```
 
+## Workflow
+![image](https://github.com/user-attachments/assets/7e99c0e8-c416-49a7-9c03-0c19f40d45fb) 
+
